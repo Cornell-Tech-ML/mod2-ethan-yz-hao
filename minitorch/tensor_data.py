@@ -44,6 +44,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
 
     """
+    # TODO: Implement for Task 2.1.
     return int(sum(i * s for i, s in zip(index, strides)))
 
 
@@ -59,6 +60,7 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
+    # TODO: Implement for Task 2.1.
     for i in range(len(shape) - 1, -1, -1):
         out_index[i] = ordinal % shape[i]
         ordinal = ordinal // shape[i]
@@ -83,6 +85,7 @@ def broadcast_index(
         None
 
     """
+    # TODO: Implement for Task 2.2.
     for i in range(len(shape) - 1, -1, -1):
         if shape[i] == 1:
             out_index[i] = 0
@@ -104,6 +107,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
 
     """
+    # TODO: Implement for Task 2.2.
     new_shape = []
     for i in range(max(len(shape1), len(shape2))):
         a = shape1[-1 - i] if i < len(shape1) else 1
