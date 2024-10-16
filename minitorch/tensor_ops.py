@@ -264,6 +264,12 @@ def tensor_map(
         # TODO: Implement for Task 2.3.
         raise NotImplementedError("Need to implement for Task 2.3")
 
+        for i in range(out_size):
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            in_pos = index_to_position(in_index, in_strides)
+            out_pos = index_to_position(out_index, out_strides)
+            out[out_pos] = fn(in_storage[in_pos])
     return _map
 
 
@@ -307,7 +313,19 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_size = int(np.prod(out_shape))
+        out_index = np.zeros(len(out_shape), dtype=int)
+        a_index = np.zeros(len(a_shape), dtype=int)
+        b_index = np.zeros(len(b_shape), dtype=int)
+
+        for i in range(out_size):
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            a_pos = index_to_position(a_index, a_strides)
+            b_pos = index_to_position(b_index, b_strides)
+            out_pos = index_to_position(out_index, out_strides)
+            out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
 
     return _zip
 
@@ -338,7 +356,28 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_size = int(np.prod(out_shape))
+        out_index = np.zeros(len(out_shape), dtype=int)
+        a_index = np.zeros(len(a_shape), dtype=int)
+
+        for i in range(out_size):
+            to_index(i, out_shape, out_index)
+            out_pos = index_to_position(out_index, out_strides)
+
+            # Initialize accumulator with the first element in the reduce dimension
+            a_index[:] = out_index
+            a_index[reduce_dim] = 0
+            a_pos = index_to_position(a_index, a_strides)
+            accumulator = a_storage[a_pos]
+
+            # Iterate over the rest of the elements in the reduce dimension
+            for s in range(1, a_shape[reduce_dim]):
+                a_index[reduce_dim] = s
+                a_pos = index_to_position(a_index, a_strides)
+                accumulator = fn(accumulator, a_storage[a_pos])
+
+            # Store the accumulated result in the output tensor
+            out[out_pos] = accumulator
 
     return _reduce
 
