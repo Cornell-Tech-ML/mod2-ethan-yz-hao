@@ -194,9 +194,9 @@ class Permute(Function):
         return t1._new(t1._tensor.permute(*dims_int))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         (inverse_dims,) = ctx.saved_values
-        return grad_output._new(grad_output._tensor.permute(*inverse_dims))
+        return grad_output._new(grad_output._tensor.permute(*inverse_dims)), 0.0
 
 class ReLU(Function):
     @staticmethod
