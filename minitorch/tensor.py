@@ -275,6 +275,10 @@ class Tensor:
         """Not used until Module 3"""
         return MatMul.apply(self, b)
 
+    def zero_grad_(self) -> None:
+        """Clear the gradient"""
+        self.grad = None
+
     @property
     def shape(self) -> UserShape:
         """Returns
