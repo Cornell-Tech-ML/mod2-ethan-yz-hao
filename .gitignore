@@ -130,3 +130,6 @@ dmypy.json
 *.\#*
 data/
 pyodide
+
+# PyCharm files
+.idea/
