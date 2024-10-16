@@ -1,5 +1,4 @@
-"""
-Description:
+"""Description:
 Note: Make sure that both the new and old module files are in same directory!
 
 This script helps you sync your previous module works with current modules.
@@ -22,7 +21,9 @@ if len(sys.argv) != 3:
 
 # Get the users path to evaluate the username and root directory
 current_path = os.getcwd()
-grandparent_path = "/".join(current_path.split("/")[:-1])
+grandparent_path = "\\".join(current_path.split("\\")[:-1])
+print("Current path : ", current_path)
+print("Grandparent path : ", grandparent_path)
 
 print("Looking for modules in : ", grandparent_path)
 
