@@ -66,21 +66,25 @@ class Function:
 class Neg(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Forward for negation, $f(x) = -x$"""
         return t1.f.neg_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        """Backward for negation, $f'(x) = -1$"""
         return grad_output.f.neg_map(grad_output)
 
 
 class Inv(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Inverse function $f(x) = 1/x$"""
         ctx.save_for_backward(t1)
         return t1.f.inv_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        """Backward for inverse, $f'(x) = -1/x^2$"""
         (t1,) = ctx.saved_values
         return grad_output.f.inv_back_zip(t1, grad_output)
 
@@ -88,17 +92,19 @@ class Inv(Function):
 class Add(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Forward for addition, $f(x, y) = x + y$"""
         return t1.f.add_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Backward for addition, $f'(x) = 1$, $f'(y) = 1$"""
         return grad_output, grad_output
 
 
 class All(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
-        """Return 1 if all are true"""
+        """Forward for all, $f(x) = $ 1.0 if all elements are true else 0.0"""
         if dim is not None:
             return a.f.mul_reduce(a, int(dim.item()))
         else:
@@ -109,13 +115,13 @@ class All(Function):
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        """Equality function $f(x) = $ 1.0 if x is equal to y else 0.0"""
+        """Forward for the equality function, $f(x) = $ 1.0 if x is equal to y else 0.0"""
         ctx.save_for_backward(t1.shape, t2.shape)
         return t1.f.eq_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        """The derivative of the equality function is 0 for both inputs."""
+        """Backward for the equality function, $f'(x) = 0$, $f'(y) = 0$"""
         t1_shape, t2_shape = ctx.saved_values
         return zeros(t1_shape), zeros(t2_shape)
 
@@ -123,13 +129,13 @@ class EQ(Function):
 class LT(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        """Less than function $f(x) = $ 1.0 if x is less than y else 0.0"""
+        """Forward for the less than function, $f(x) = $ 1.0 if x is less than y else 0.0"""
         ctx.save_for_backward(t1.shape, t2.shape)
         return t1.f.lt_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        """The derivative of the less than function is 0 for both inputs."""
+        """Backward for the less than function, $f'(x) = 0$, $f'(y) = 0$"""
         t1_shape, t2_shape = ctx.saved_values
         return zeros(t1_shape), zeros(t2_shape)
 
@@ -137,13 +143,13 @@ class LT(Function):
 class Exp(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        """Exponential function $f(x) = e^x$"""
+        """Forward for the exponential function, $f(x) = e^x$"""
         ctx.save_for_backward(t1.f.exp_map(t1))
         return t1.f.exp_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        """The derivative of the exponential function is e^x."""
+        """Backward for the exponential function, $f'(x) = e^x$"""
         (exp_t1,) = ctx.saved_values
         return grad_output.f.mul_zip(exp_t1, grad_output)
 
@@ -151,19 +157,20 @@ class Exp(Function):
 class IsClose(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Check if x is close to y."""
         return t1.f.is_close_zip(t1, t2)
 
 
 class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        """Logarithm of the tensor."""
+        r"""Forward for the logarithm function, $f(x) = \log(x)$"""
         ctx.save_for_backward(t1)
         return t1.f.log_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        """The derivative of the logarithm function is 1/x."""
+        """Backward for the logarithm function, $f'(x) = 1/x$"""
         (t1,) = ctx.saved_values
         return grad_output.f.log_back_zip(t1, grad_output)
 
@@ -171,11 +178,13 @@ class Log(Function):
 class Mul(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Forward for multiplication, $f(x, y) = x * y$"""
         ctx.save_for_backward(t1, t2)
         return t1.f.mul_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Backward for multiplication, $f'(x) = y$, $f'(y) = x$"""
         t1, t2 = ctx.saved_values
         return (
             grad_output.f.mul_zip(grad_output, t2),
@@ -186,6 +195,7 @@ class Mul(Function):
 class Permute(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, dims: Tensor) -> Tensor:
+        """Forward for permutation, $f(x) = x.permute(dims)$"""
         dims_int = list(dims.to_numpy().astype(int))
         inverse_dims = [0] * len(dims_int)
         for i, d in enumerate(dims_int):
@@ -195,17 +205,21 @@ class Permute(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        """Backward for permutation, $f'(x) = x.permute(inverse(dims))$"""
         (inverse_dims,) = ctx.saved_values
         return grad_output._new(grad_output._tensor.permute(*inverse_dims)), 0.0
+
 
 class ReLU(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        r"""Forward for the ReLU function, $f(x) = \max(0, x)$"""
         ctx.save_for_backward(t1)
         return t1.f.relu_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        """Backward for the ReLU function, $f'(x) = 1$ if $x > 0$ else 0"""
         (t1,) = ctx.saved_values
         return grad_output.f.relu_back_zip(t1, grad_output)
 
@@ -213,12 +227,14 @@ class ReLU(Function):
 class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Forward for the sigmoid function, $f(x) = 1 / (1 + e^{-x})$"""
         sig = t1.f.sigmoid_map(t1)
         ctx.save_for_backward(sig)
         return sig
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        r"""Backward for the sigmoid function, $f'(x) = \sigma(x) * (1 - \sigma(x))$"""
         (sig,) = ctx.saved_values
         one = tensor(1.0, backend=grad_output.backend)
         one_minus_sig = one - sig
@@ -229,16 +245,19 @@ class Sigmoid(Function):
 class Sum(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, dim: Tensor) -> Tensor:
+        r"""Forward for sum, $f(x) = \sum x$"""
         return t1.f.add_reduce(t1, int(dim.item()))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        r"""Backward for sum, $f'(x) = 1$"""
         return grad_output, 0.0
 
 
 class View(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
+        """Forward for view, $f(x) = x.view(shape)$"""
         ctx.save_for_backward(a.shape)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
         shape2 = [int(shape[i]) for i in range(shape.size)]
@@ -401,6 +420,21 @@ def tensor(
 def grad_central_difference(
     f: Any, *vals: Tensor, arg: int = 0, epsilon: float = 1e-6, ind: UserIndex
 ) -> float:
+    """Compute the central difference for a function.
+
+    Args:
+    ----
+        f : function to compute gradient
+        *vals : arguments to function
+        arg : argument to compute gradient
+        epsilon : small value for difference
+        ind : index to compute gradient
+
+    Returns:
+    -------
+        float : gradient value
+
+    """
     x = vals[arg]
     up = zeros(x.shape)
     up[ind] = epsilon
