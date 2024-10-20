@@ -295,19 +295,18 @@ class Tensor:
 
     @property
     def shape(self) -> UserShape:
-        """Returns
-        shape of the tensor
-
-        """
+        """Return the shape of the tensor"""
         return self._tensor.shape
 
     @property
     def size(self) -> int:
-        """Returns
-        size of the tensor
-
-        """
+        """Return the size of the tensor"""
         return self._tensor.size
+
+    @property
+    def dims(self) -> int:
+        """Return the number of dimensions of the tensor"""
+        return self._tensor.dims
 
     # Functions
     # TODO: Implement for Task 2.3.
